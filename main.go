@@ -8,14 +8,26 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 )
 
 const (
 	ollamaURL = "http://localhost:11434"
 	apiKey    = "demo"
+	logFile   = "requests.log"
 )
 
 func main() {
+	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v", err)
+	}
+	defer file.Close()
+
+	multiWriter := io.MultiWriter(file, os.Stdout)
+	log.SetOutput(multiWriter)
+
+	// Start the server
 	http.HandleFunc("/v1/", handleProxy)
 	http.HandleFunc("/api/chat", handleProxy)
 	fmt.Println("Server is running on 0.0.0.0:8080")
